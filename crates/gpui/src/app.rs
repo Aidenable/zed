@@ -702,6 +702,7 @@ pub struct App {
     pub(crate) window_update_stack: Vec<WindowId>,
     pub(crate) mode: GpuiMode,
     pub(crate) cursor_hide_mode: CursorHideMode,
+    pub(crate) reduce_animations: bool,
     /// Whether the app was created by [`Application::new_inaccessible`]. No
     /// accesskit APIs will be called when this flag is set.
     pub(crate) accessibility_force_disabled: bool,
@@ -794,6 +795,7 @@ impl App {
                 quit_mode: QuitMode::default(),
                 quitting: false,
                 cursor_hide_mode: CursorHideMode::default(),
+                reduce_animations: false,
                 accessibility_force_disabled: false,
 
                 #[cfg(any(test, feature = "test-support", debug_assertions))]
@@ -954,6 +956,21 @@ impl App {
     /// See [`App::set_cursor_hide_mode`].
     pub fn is_cursor_visible(&self) -> bool {
         self.platform.is_cursor_visible()
+    }
+
+    /// Returns whether non-essential animations (e.g. loading spinners) should
+    /// be rendered in a static state instead of animating.
+    pub fn reduce_animations(&self) -> bool {
+        self.reduce_animations
+    }
+
+    /// Sets whether non-essential animations (e.g. loading spinners) should be
+    /// rendered in a static state instead of animating.
+    pub fn set_reduce_animations(&mut self, reduce_animations: bool) {
+        if self.reduce_animations != reduce_animations {
+            self.reduce_animations = reduce_animations;
+            self.refresh_windows();
+        }
     }
 
     /// Schedules all windows in the application to be redrawn. This can be called

@@ -265,6 +265,9 @@
   // 3. Hide on typing and on key bindings that resolve to an action:
   //    "on_typing_and_action"
   "hide_mouse": "on_typing_and_action",
+  // Whether to reduce non-essential motion in the UI, such as loading
+  // spinners and pulsating labels, by rendering them in a static state.
+  "reduce_animations": false,
   // Determines whether the focused panel follows the mouse location.
   "focus_follows_mouse": {
     "enabled": false,

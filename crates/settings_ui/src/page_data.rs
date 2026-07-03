@@ -491,7 +491,7 @@ fn general_page(cx: &App) -> SettingsPage {
 }
 
 fn appearance_page() -> SettingsPage {
-    fn theme_section() -> [SettingsPageItem; 3] {
+    fn theme_section() -> [SettingsPageItem; 4] {
         [
             SettingsPageItem::SectionHeader("Theme"),
             SettingsPageItem::DynamicItem(DynamicItem {
@@ -853,6 +853,20 @@ fn appearance_page() -> SettingsPage {
                         ],
                     }
                 }).collect(),
+            }),
+            SettingsPageItem::SettingItem(SettingItem {
+                title: "Reduce Animations",
+                description: "Whether to reduce non-essential motion, such as loading spinners, by rendering them in a static state.",
+                field: Box::new(SettingField {
+                    organization_override: None,
+                    json_path: Some("reduce_animations"),
+                    pick: |settings_content| settings_content.reduce_animations.as_ref(),
+                    write: |settings_content, value, _| {
+                        settings_content.reduce_animations = value;
+                    },
+                }),
+                metadata: None,
+                files: USER,
             }),
         ]
     }

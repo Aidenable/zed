@@ -216,6 +216,12 @@ pub struct SettingsContent {
 
     pub proxy: Option<String>,
 
+    /// Whether to reduce non-essential motion in the UI, such as loading
+    /// spinners and pulsating labels, by rendering them in a static state.
+    ///
+    /// Default: false
+    pub reduce_animations: Option<bool>,
+
     /// The URL of the Zed server to connect to.
     pub server_url: Option<String>,
 

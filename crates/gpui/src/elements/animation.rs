@@ -47,6 +47,12 @@ impl Animation {
 }
 
 /// An extension trait for adding the animation wrapper to both Elements and Components
+///
+/// Animations rendered through this trait automatically respect
+/// [`App::reduce_animations`](crate::App::reduce_animations): when it is set,
+/// the element is rendered in a static state (the end state for oneshot
+/// animations, the start state for repeating ones) and no animation frames are
+/// scheduled.
 pub trait AnimationExt {
     /// Render this component or element with an animation
     fn with_animation(
@@ -141,25 +147,38 @@ impl<E: IntoElement + 'static> Element for AnimationElement<E> {
                 start: Instant::now(),
                 animation_ix: 0,
             });
-            let animation_ix = state.animation_ix;
-
-            let mut delta = state.start.elapsed().as_secs_f32()
-                / self.animations[animation_ix].duration.as_secs_f32();
-
-            let mut done = false;
-            if delta > 1.0 {
-                if self.animations[animation_ix].oneshot {
-                    if animation_ix >= self.animations.len() - 1 {
-                        done = true;
-                    } else {
-                        state.start = Instant::now();
-                        state.animation_ix += 1;
-                    }
-                    delta = 1.0;
+            let (animation_ix, delta, done) = if cx.reduce_animations() {
+                // Render a static frame: the end state for oneshot animations,
+                // and the start state for repeating ones.
+                let animation_ix = self.animations.len() - 1;
+                let delta = if self.animations[animation_ix].oneshot {
+                    1.0
                 } else {
-                    delta %= 1.0;
+                    0.0
+                };
+                (animation_ix, delta, true)
+            } else {
+                let animation_ix = state.animation_ix;
+
+                let mut delta = state.start.elapsed().as_secs_f32()
+                    / self.animations[animation_ix].duration.as_secs_f32();
+
+                let mut done = false;
+                if delta > 1.0 {
+                    if self.animations[animation_ix].oneshot {
+                        if animation_ix >= self.animations.len() - 1 {
+                            done = true;
+                        } else {
+                            state.start = Instant::now();
+                            state.animation_ix += 1;
+                        }
+                        delta = 1.0;
+                    } else {
+                        delta %= 1.0;
+                    }
                 }
-            }
+                (animation_ix, delta, done)
+            };
             let delta = (self.animations[animation_ix].easing)(delta);
 
             debug_assert!(
